@@ -104,7 +104,17 @@ class Connection implements ConnectionInterface
     /**
      * @var float
      */
-    private $pingTimeout = 1;    //TODO expose this
+    protected $pingTimeout = 1;    //TODO expose this
+
+    /**
+     * @var int
+     */
+    private $minPingTimeout = 1;
+
+    /**
+     * @var int
+     */
+    private $maxPingTimeout = 60;
 
     /**
      * @var int
@@ -476,7 +486,7 @@ class Connection implements ConnectionInterface
     {
         $options = [
             'client' => [
-                'timeout' => $this->pingTimeout,
+                'timeout' => $this->getPingTimeout(),
                 'never_retry' => true,
                 'verbose' => true
             ]
@@ -508,7 +518,7 @@ class Connection implements ConnectionInterface
     {
         $options = [
             'client' => [
-                'timeout' => $this->pingTimeout,
+                'timeout' => $this->getPingTimeout(),
                 'never_retry' => true
             ]
         ];
@@ -533,6 +543,17 @@ class Connection implements ConnectionInterface
         $this->isAlive = false;
         $this->failedPings += 1;
         $this->lastPing = time();
+    }
+
+    public function getPingTimeout(): int
+    {
+        return $this->pingTimeout;
+    }
+
+    public function setPingTimeout(int $timeout): void
+    {
+        $timeout = min($this->maxPingTimeout, max($this->minPingTimeout, $timeout));
+        $this->pingTimeout = $timeout;
     }
 
     public function getLastPing(): int
